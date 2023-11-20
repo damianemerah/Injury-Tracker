@@ -1,0 +1,17 @@
+.auth_form {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 100%;
+  transform: translate(-50%, -50%);
+  transition: transform 0.5s ease-in-out;
+}
+
+.form_redirect {
+  text-align: center;
+}
+
+.form_redirect span {
+  text-transform: capitalize;
+  color: blue;
+}
