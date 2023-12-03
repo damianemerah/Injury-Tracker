@@ -5,47 +5,78 @@ export const typeDefs = gql`
     id: ID!
     name: String!
     email: String
-    injuries: [Injury]!
+    injuryList: [InjuryData]!
+    createdAt: DateTime!
+    updatedAt: DateTime!
+  }
+
+  type InjuryData {
+    id: ID!
+    reporter: Reporter!
+    injuryItem: [Injury]!
     createdAt: DateTime!
     updatedAt: DateTime!
   }
 
   type Injury {
     id: ID!
-    reporter: Reporter!
+    relatedInjuries: InjuryData!
     createdAt: DateTime!
     updatedAt: DateTime!
     bodyMap: String!
-    parts: [String!]!
+    bodyPart: String!
+    description: String!
+    injuryDate: DateTime!
   }
 
   type Query {
-    injuries: [Injury!]!
+    injuries: [InjuryData]!
+    injury(id: ID!): InjuryData
     reporter(id: ID!): Reporter
-    reporters: [Reporter!]!
-    injury(reporterId: ID!): Injury
-    parts(filter: [String!]!): [Injury!]!
+    getInjury(id: ID!): Injury
   }
 
   type Mutation {
     createReporter(id: ID!, input: ReporterInput!): Reporter!
-    updateReporter(id: ID!, input: ReporterInput!): Reporter!
+    updateReporter(id: ID!, input: UpdateReporterInput!): Reporter!
     deleteReporter(id: ID!): Reporter!
-    createInjury(reporterId: ID!, input: InjuryInput!): Injury!
-    updateInjury(id: ID!, input: InjuryInput!): Injury!
-    deleteInjury(id: ID!): Injury!
+    createInjury(reporterId: ID!, input: CreateInjuryDataInput!): InjuryData!
+    updateInjury(id: ID!, input: UpdateInjuryInput!): InjuryData!
+    deleteInjury(id: ID!): InjuryData!
   }
 
   input ReporterInput {
-    id: ID!
     name: String!
     email: String
-    injuries: [InjuryInput]!
+    injuryList: [CreateInjuryDataInput]!
+  }
+
+  input UpdateReporterInput {
+    name: String
+    email: String
   }
 
   input InjuryInput {
     bodyMap: String!
-    parts: [String!]!
+    bodyPart: String!
+    description: String!
+    injuryDate: DateTime!
+  }
+
+  input UpdateInjuryInputData {
+    id: ID
+    bodyMap: String!
+    bodyPart: String!
+    description: String!
+    injuryDate: DateTime!
+  }
+
+  input CreateInjuryDataInput {
+    injuryItem: [InjuryInput!]!
+  }
+
+  input UpdateInjuryInput {
+    injuryItem: [UpdateInjuryInputData!]!
   }
 
   scalar DateTime

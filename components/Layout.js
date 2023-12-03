@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   DashboardOutlined,
   FileOutlined,
@@ -8,11 +8,12 @@ import {
   BarChartOutlined,
   UnorderedListOutlined,
 } from "@ant-design/icons";
-import { Breadcrumb, Layout, Menu, theme, Space, Button, Image } from "antd";
+import { Layout, Menu, theme, Space, Button, Image } from "antd";
 import Link from "next/link";
 import { useUser } from "@auth0/nextjs-auth0/client";
+import { usePathname } from "next/navigation";
 
-const { Header, Content, Footer, Sider } = Layout;
+const { Header, Footer, Sider } = Layout;
 function getItem(label, key, icon, children) {
   return {
     key,
@@ -24,29 +25,37 @@ function getItem(label, key, icon, children) {
 const items = [
   getItem(
     <Link href={"/dashboard"}>Dashboard</Link>,
-    "1",
+    "/dashboard",
     <DashboardOutlined />
   ),
-  getItem(<Link href={"/report"}>Report Injury</Link>, "2", <FileOutlined />),
   getItem(
-    <Link href={"/injury"}>All injuries</Link>,
-    "3",
-    <UnorderedListOutlined />
+    <Link href={"/report"}>Report Injury</Link>,
+    "/report",
+    <FileOutlined />
   ),
+
   getItem(
     <Link href={"/analytics"}>Analytics</Link>,
-    "sub2",
+    "/analytics",
     <BarChartOutlined />
   ),
-  getItem(<Link href={"/profile"}>Profile</Link>, "9", <UserOutlined />),
+  getItem(<Link href={"/profile"}>Profile</Link>, "5", <UserOutlined />),
 ];
+
 const App = ({ children }) => {
+  const pathname = usePathname();
   const { user, error, isLoading } = useUser();
+  const [selectedMenu, setSelectedMenu] = useState(pathname);
 
   const [collapsed, setCollapsed] = useState(false);
+
   const {
     token: { colorBgContainer },
   } = theme.useToken();
+
+  const handleSelectedMenu = (e) => {
+    setSelectedMenu(e.key);
+  };
 
   if (isLoading) return <div>Loading...</div>;
   if (error) return <div>{error.message}</div>;
@@ -64,9 +73,10 @@ const App = ({ children }) => {
         <div className="demo-logo-vertical" />
         <Menu
           theme="dark"
-          defaultSelectedKeys={["1"]}
+          defaultSelectedKeys={[selectedMenu]}
           mode="inline"
           items={items}
+          onClick={handleSelectedMenu}
         />
       </Sider>
       <Layout>
@@ -106,22 +116,6 @@ const App = ({ children }) => {
             )}
           </div>
         </Header>
-        {/* <Content
-          style={{
-            margin: "0 16px",
-          }}
-        >
-          <div
-            style={{
-              padding: 24,
-              minHeight: 360,
-              background: colorBgContainer,
-            }}
-          >
-            {children}
-            </div>
-          </Content> */}
-
         {children}
         <Footer
           style={{

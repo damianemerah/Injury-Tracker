@@ -18,23 +18,20 @@ const GET_INJURIES = gql`
 `;
 
 const MyComponent = () => {
-  const { loading, error, data } = useQuery(GET_INJURIES, {
-    variables: {},
-    fetchPolicy: "network-only",
-  });
+  // const { loading, error, data } = useQuery(GET_INJURIES);
 
-  if (loading) return <p>Loading...</p>;
+  // if (loading) return <p>Loading...</p>;
 
-  if (error) {
-    console.error("GraphQL error:", error);
+  // if (error) {
+  //   console.error("GraphQL error:", error);
 
-    // Check if the error includes a network error
-    if (error.networkError) {
-      console.error("Network error:", error.networkError);
-    }
+  //   // Check if the error includes a network error
+  //   if (error.networkError) {
+  //     console.error("Network error:", error.networkError);
+  //   }
 
-    return <p>Error fetching data. Please try again.</p>;
-  }
+  //   return <p>Error fetching data. Please try again.</p>;
+  // }
 
   const injuries = data?.injuries || [];
 

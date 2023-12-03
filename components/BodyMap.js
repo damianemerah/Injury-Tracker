@@ -1,55 +1,25 @@
+import { useInjury } from "@/components/context/BodyMapContext";
 import { Card, Tooltip } from "antd";
-import {
-  useRef,
-  forwardRef,
-  useImperativeHandle,
-  useState,
-  useEffect,
-} from "react";
+import { useRef, forwardRef, useImperativeHandle } from "react";
 
 const BodyMap = forwardRef(function BodyMap(props, ref) {
   const canvasRef = useRef(null);
-  const containerRef = useRef(null);
-  const injuryDetailsRef = useRef(null);
-  const [showDescription, setShowDescription] = useState(false);
-  const [injuryDetails, setInjuryDetails] = useState("No description");
-  const [overlayPosition, setOverlayposition] = useState({ left: 0, right: 0 });
 
   useImperativeHandle(ref, () => ({
     canvasRef,
-    containerRef,
-    showDescription,
-    setShowDescription,
-    injuryDetails,
-    setInjuryDetails,
-    injuryDetailsRef,
   }));
+
+  const { showDescription, injuryDetails } = useInjury();
 
   return (
     <Card style={{ display: "inline-block", flex: 1, position: "relative" }}>
-      <div
-        id="tooltip"
-        style={{
-          position: "absolute",
-          display: showDescription ? "block" : "none",
-          zIndex: 15000,
-          padding: 10,
-          background: "yellowgreen",
-          borderRadius: 5,
-          maxWidth: 200,
-        }}
-        ref={injuryDetailsRef}
-      >
-        <span>{injuryDetails}</span>
-      </div>
-
+      <Tooltip open={showDescription} title={injuryDetails}></Tooltip>
       <div
         style={{
           background: "url('/body-map.jpeg')",
           backgroundSize: "contain",
           position: "relative",
         }}
-        ref={containerRef}
       >
         <canvas
           style={{

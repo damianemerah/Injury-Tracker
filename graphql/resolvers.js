@@ -1,25 +1,26 @@
+import { WithApiAuthRequired, getSession } from "@auth0/nextjs-auth0";
+import { ObjectId } from "bson";
+
+const getUser = async (req) => {
+  const session = await getSession(req);
+  if (!session || !session.user) {
+    return null;
+  }
+  return session;
+};
+
 export const resolvers = {
   Query: {
-    injuries: async (parent, args, context) => {
+    getInjury: async (_, { id }, context) => {
       try {
-        const injuries = await context.prisma.injury.findMany({});
-
-        return injuries;
-      } catch (error) {
-        throw error;
-      }
-    },
-
-    injury: async (_, { reporterId }, context) => {
-      try {
-        const injury = await context.prisma.injury.findFirst({
+        const injury = await context.prisma.injury.findUnique({
           where: {
-            reporterId,
+            id,
           },
         });
 
         if (!injury) {
-          throw new Error("Injury not found");
+          return null;
         }
 
         return injury;
@@ -27,51 +28,69 @@ export const resolvers = {
         throw error;
       }
     },
+    injuries: async (parent, args, context) => {
+      try {
+        const injuries = await context.prisma.injuryData.findMany({
+          include: {
+            reporter: true,
+            injuryItem: true,
+          },
+        });
+
+        return injuries;
+      } catch (error) {
+        throw error;
+      }
+    },
+
+    injury: async (_, { id }, context) => {
+      try {
+        const injuryData = await context.prisma.injuryData.findFirst({
+          where: {
+            id,
+          },
+          include: {
+            reporter: {
+              select: {
+                name: true,
+                email: true,
+              },
+            },
+            injuryItem: true,
+          },
+        });
+
+        if (!injuryData) {
+          return null;
+        }
+
+        return injuryData;
+      } catch (error) {
+        throw error;
+      }
+    },
 
     reporter: async (_, { id }, context) => {
       try {
+        console.log("Searching for reporter with id:🤒🤒🚀🚀🚀🔥", id);
         const reporter = await context.prisma.reporter.findUnique({
           where: {
             id,
           },
-        });
-
-        if (!reporter) {
-          throw new Error("Reporter not found");
-        }
-
-        return reporter;
-      } catch (error) {
-        throw error;
-      }
-    },
-    reporters: async (_, __, context) => {
-      try {
-        const reporters = await context.prisma.reporter.findMany({
           include: {
-            injuries: true,
+            injuryList: {
+              include: {
+                injuryItem: true,
+              },
+            },
           },
         });
 
-        return reporters;
-      } catch (error) {
-        throw error;
-      }
-    },
-
-    parts: async (_, { filter }, context) => {
-      try {
-        if (filter && Array.isArray(filter)) {
-          return await context.prisma.injury.findMany({
-            where: {
-              parts: {
-                hasSome: [...filter],
-              },
-            },
-          });
+        if (!reporter) {
+          return null;
         }
 
-        throw new Error("Filter is required");
+        return reporter;
       } catch (error) {
         throw error;
       }
@@ -80,57 +99,87 @@ export const resolvers = {
   Mutation: {
     createReporter: async (_, { id, input }, context) => {
       try {
-        if (!id || typeof id !== "string")
+        const { name, email, injuryList = [] } = input;
+        const session = await getUser(context.req);
+        const userID = session?.user?.sub.split("|")[1];
+        console.log("session🔥🔥", userID);
+
+        if (!id || id !== userID) {
           throw new Error("Reporter ID is required");
-        if (!input.name || typeof input.name !== "string")
+        }
+
+        if (!name || typeof name !== "string" || name.length === 0) {
           throw new Error("Reporter name is required");
+        }
 
         const existingReporter = await context.prisma.reporter.findUnique({
           where: {
             id,
           },
           include: {
-            injuries: true,
+            injuryList: true,
           },
         });
 
         if (existingReporter) {
-          throw new Error("Reporter already exists");
+          return existingReporter;
         }
-
-        const { name, email, injuries = [] } = input;
 
         const reporter = await context.prisma.reporter.create({
           data: {
             id,
             name,
             email,
-            injuries: { create: injuries },
+            injuryList: {
+              create: injuryList.map((injury) => ({
+                injuryData: {
+                  create: {
+                    injuryItem: {
+                      create: [
+                        {
+                          bodyMap: injury.bodyMap,
+                          bodyPart: injury.bodyPart,
+                          description: injury.description,
+                          injuryDate: injury.injuryDate,
+                        },
+                      ],
+                    },
+                  },
+                },
+              })),
+            },
+          },
+          include: {
+            injuryList: true,
           },
         });
 
-        if (!reporter) {
-          throw new Error("Failed to create reporter");
-        }
-
         return reporter;
       } catch (error) {
+        console.error("Error creating reporter:", error.message);
         throw error;
       }
     },
+
     updateReporter: async (_, { id, input }, context) => {
       try {
-        if (!id || typeof id !== "string")
-          throw new Error("Reporter ID is required");
+        const session = await getUser(context.req);
+        const userID = session?.user?.sub.split("|")[1];
 
-        const { name, email, injuries = [] } = input;
+        if (!id || id !== userID) {
+          throw new Error("Reporter ID is required");
+        }
+
+        const { name, email } = input;
 
         const existingReporter = await context.prisma.reporter.findUnique({
-          where: {
-            id,
-          },
+          where: { id },
           include: {
-            injuries: true,
+            injuryList: {
+              include: {
+                injuryItem: true,
+              },
+            },
           },
         });
 
@@ -138,27 +187,20 @@ export const resolvers = {
           throw new Error("Reporter not found");
         }
 
-        const updatedReporter = await context.prisma.reporter.update(
-          {
-            where: {
-              id,
-            },
-            data: {
-              name,
-              email,
-              injuries: { push: injuries },
+        const updatedReporter = await context.prisma.reporter.update({
+          where: { id },
+          data: {
+            name,
+            email,
+          },
+          include: {
+            injuryList: {
+              include: {
+                injuryItem: true,
+              },
             },
           },
-          {
-            include: {
-              injuries: true,
-            },
-          }
-        );
-
-        if (!updatedReporter) {
-          throw new Error("Failed to update reporter");
-        }
+        });
 
         return updatedReporter;
       } catch (error) {
@@ -168,7 +210,13 @@ export const resolvers = {
     },
     deleteReporter: async (_, { id }, context) => {
       try {
-        if (!id) throw new Error("Reporter ID is required");
+        const session = await getUser(context.req);
+        const userID = session?.user?.sub.split("|")[1];
+
+        if (!id || id !== userID) {
+          throw new Error("Reporter ID is required");
+        }
+
         const deletedReporter = await context.prisma.reporter.delete({
           where: {
             id,
@@ -185,14 +233,8 @@ export const resolvers = {
     },
     createInjury: async (_, { reporterId, input }, context) => {
       try {
-        const { bodyMap, parts } = input;
-
-        if (!reporterId) throw new Error("Reporter ID is required");
-        if (!bodyMap || typeof bodyMap !== "string")
-          throw new Error("Body map is required");
-        if (!parts || !Array.isArray(parts) || parts.length === 0)
-          throw new Error("Parts are required");
-
+        const { injuryItem } = input;
+        // Check if the reporter exists
         const existingReporter = await context.prisma.reporter.findUnique({
           where: {
             id: reporterId,
@@ -203,23 +245,36 @@ export const resolvers = {
           throw new Error("Reporter not found");
         }
 
-        const injury = await context.prisma.injury.create({
+        const session = await getUser(context.req);
+        const userID = session?.user?.sub.split("|")[1];
+
+        if (!reporterId || reporterId !== userID) {
+          throw new Error("Reporter ID is required");
+        }
+
+        const injuryData = await context.prisma.injuryData.create({
           data: {
-            bodyMap,
-            parts,
             reporter: {
               connect: {
                 id: reporterId,
               },
             },
+            injuryItem: {
+              create: injuryItem.map((injury) => ({
+                id: injury.id,
+                bodyMap: injury.bodyMap,
+                bodyPart: injury.bodyPart,
+                description: injury.description,
+                injuryDate: injury.injuryDate,
+              })),
+            },
+          },
+          include: {
+            reporter: true,
           },
         });
 
-        if (!injury) {
-          throw new Error("Failed to create injury");
-        }
-
-        return injury;
+        return injuryData;
       } catch (error) {
         console.log("Error creating injury:", error);
         throw error;
@@ -227,42 +282,84 @@ export const resolvers = {
     },
     updateInjury: async (_, { id, input }, context) => {
       try {
-        const { bodyMap, parts } = input;
-
+        const { injuryItem } = input;
         if (!id || typeof id !== "string")
           throw new Error("Injury ID is required");
-        if (!bodyMap || typeof bodyMap !== "string")
-          throw new Error("Body map is required");
-        if (!parts || !Array.isArray(parts) || parts.length === 0)
-          throw new Error("Parts are required");
 
-        const injury = await context.prisma.injury.update({
+        const existingInjury = await context.prisma.injuryData.findUnique({
+          where: { id },
+          include: { reporter: true },
+        });
+        if (!existingInjury) {
+          throw new Error("Injury not found");
+        }
+
+        const session = await getUser(context.req);
+        const userID = session?.user?.sub.split("|")[1];
+
+        if (existingInjury.reporterId !== userID) {
+          console.log(
+            "existingInjury.reporterId",
+            existingInjury.reporterId,
+            "userID",
+            userID
+          );
+          throw new Error("Cannot update injury for another reporter");
+        }
+
+        // Delete all existing injuries
+        const deletedInjuries = await context.prisma.injury.deleteMany({
           where: {
-            id,
-          },
-          data: {
-            bodyMap,
-            parts,
+            relatedInjuriesId: id,
           },
         });
 
-        return injury;
+        // Create new injuries
+        const updatedInjuryData = await context.prisma.injuryData.update({
+          where: { id },
+          data: {
+            injuryItem: {
+              create: injuryItem.map((newItem) => ({
+                bodyMap: newItem.bodyMap,
+                bodyPart: newItem.bodyPart,
+                description: newItem.description,
+                injuryDate: newItem.injuryDate,
+              })),
+            },
+          },
+          include: { reporter: true },
+        });
+        return updatedInjuryData;
       } catch (error) {
         console.log("Error updating injury:", error);
         throw error;
       }
     },
+
     deleteInjury: async (_, { id }, context) => {
       try {
-        const deletedInjury = await context.prisma.injury.delete({
+        const existingInjury = await context.prisma.injuryData.findUnique({
           where: {
             id,
           },
         });
 
-        if (!deletedInjury) {
-          throw new Error("Failed to delete injury");
+        if (!existingInjury) {
+          throw new Error("Injury not found");
         }
+
+        const session = await getUser(context.req);
+        const userID = session?.user?.sub.split("|")[1];
+
+        if (existingInjury.reporterId !== userID) {
+          throw new Error("Cannot delete injury for another reporter");
+        }
+
+        const deletedInjury = await context.prisma.injuryData.delete({
+          where: {
+            id,
+          },
+        });
 
         return deletedInjury;
       } catch (error) {
@@ -275,10 +372,25 @@ export const resolvers = {
     id: (parent) => parent.id,
     name: (parent) => parent.name,
     email: (parent) => parent.email,
-    injuries: async (parent, _, context) => {
+    injuryList: (parent) => parent.injuryList,
+  },
+  InjuryData: {
+    id: (parent) => parent.id,
+    reporter: async (parent, _, context) => {
+      if (!parent.reporterId) {
+        throw new Error("Reporter ID is missing in the resolver.");
+      }
+      const reporter = await context.prisma.reporter.findUnique({
+        where: {
+          id: parent.reporterId,
+        },
+      });
+      return reporter;
+    },
+    injuryItem: async (parent, _, context) => {
       const injuries = await context.prisma.injury.findMany({
         where: {
-          reporterId: parent.id,
+          relatedInjuriesId: parent.id,
         },
       });
       return injuries;
@@ -287,15 +399,17 @@ export const resolvers = {
 
   Injury: {
     id: (parent) => parent.id,
-    reporter: async (parent, _, context) => {
-      const reporter = await context.prisma.reporter.findUnique({
+    relatedInjuries: async (parent, _, context) => {
+      const relatedInjuries = await context.prisma.injuryData.findUnique({
         where: {
-          id: parent.reporterId,
+          id: parent.relatedInjuriesId,
         },
       });
-      return reporter;
+      return relatedInjuries;
     },
     bodyMap: (parent) => parent.bodyMap,
-    parts: (parent) => parent.parts,
+    bodyPart: (parent) => parent.bodyPart,
+    description: (parent) => parent.description,
+    injuryDate: (parent) => parent.injuryDate,
   },
 };

@@ -1,65 +1,25 @@
-import { Form, Input, Select, Button, Space } from "antd";
-import { forwardRef, useImperativeHandle, useRef, useState } from "react";
+import { Form, Input, Select, Button, Space, DatePicker } from "antd";
+import { useInjury } from "@/components/context/BodyMapContext";
+import { useEffect } from "react";
+import dayjs from "dayjs";
 
 const { Option } = Select;
+
 const tailLayout = {
-  wrapperCol: { offset: 4, span: 16 },
+  wrapperCol: { offset: 8, span: 16 },
 };
 
-const InjuryForm = forwardRef(function InjuryForm(
-  { onFinish, onClick, saveInjury },
-  ref
-) {
-  const [form] = Form.useForm();
-  const [injuryNumber, setInjuryNumber] = useState(0);
-  const [isEditing, setIsEditing] = useState(false);
-
-  const handleFinish = (values) => {
-    if (onFinish) {
-      onFinish(values);
-    }
-  };
-
-  const resetFields = () => {
-    form.resetFields();
-  };
-
-  const getFormValues = () => {
-    return form.getFieldsValue();
-  };
-
-  const setFormValues = (values) => {
-    form.setFieldsValue(values);
-  };
-
-  const handleButtonClick = () => {
-    if (onClick) {
-      onClick();
-    }
-  };
-
-  const inputInstance = (input) => {
-    return form.getFieldInstance(input);
-  };
-
-  useImperativeHandle(ref, () => ({
-    onFinish: handleFinish,
-    onClick: handleButtonClick,
-    resetFields,
-    setFormValues,
-    getFormValues,
-    inputInstance,
-    injuryNumber,
-    setInjuryNumber,
-    isEditing,
-    setIsEditing,
-  }));
+const InjuryForm = function InjuryForm({ addInjuryDetail }) {
+  const { circleId, isEditing, saveInjury, form, onChange, canvas } =
+    useInjury();
 
   return (
-    <Form form={form} name="myForm" onFinish={handleFinish} layout="vertical">
+    <Form form={form} name="myForm" layout="vertical">
       {isEditing && (
-        <p style={{ marginBottom: 15, fontWeight: "bold" }}>
-          Editing injury: {injuryNumber}
+        <p
+          style={{ marginBottom: 15, fontWeight: "bold", color: "yellowgreen" }}
+        >
+          Viewing injury: {circleId}
         </p>
       )}
       <Form.Item
@@ -75,47 +35,47 @@ const InjuryForm = forwardRef(function InjuryForm(
 
       <Form.Item
         label="Body Part"
-        name="part"
-        rules={[{ required: true, message: "Please select a treatment!" }]}
+        name="bodyPart"
+        rules={[{ required: true, message: "Please select a body part!" }]}
       >
-        <Select placeholder="Select body part" name="part">
+        <Select placeholder="Select body part" name="bodyPart">
           <Option value="default" disabled>
             -- Select Body Part --
           </Option>
-          <Option value="Head-neck">Head & Neck</Option>
-          <Option value="Chest-Stomach">Chest & Stomach</Option>
-          <Option value="Lower-limb">Lower Limb</Option>
-          <Option value="Upper-limb">Upper Limb</Option>
-          <Option value="Back-Spine">Back & Spine</Option>
+          <Option value="Head">Head</Option>
+          <Option value="Neck">Neck</Option>
+          <Option value="Shoulder">Shoulder</Option>
+          <Option value="Arm">Arm</Option>
+          <Option value="Hand">Hand</Option>
+          <Option value="Torso">Torso</Option>
+          <Option value="Leg">Leg</Option>
+          <Option value="Foot">Foot</Option>
         </Select>
       </Form.Item>
       <Form.Item
-        label="Treatment"
-        name="treatment"
-        rules={[{ required: true, message: "Please select a treatment!" }]}
+        label="Injury Start-date"
+        name="date"
+        rules={[{ required: true, message: "Please select a date!" }]}
       >
-        <Select placeholder="Select a treatment" name="treatment">
-          <Option value="default" disabled>
-            -- Select Treatment --
-          </Option>
-          <Option value="receive-treatment">Recieving treatment</Option>
-          <Option value="no-treatment">No treatment</Option>
-          <Option value="complete-treatment">Treatment completed</Option>
-        </Select>
+        <DatePicker
+          onChange={onChange}
+          format="YYYY/MM/DD HH:mm"
+          showTime={{ format: "HH:mm" }}
+          style={{
+            width: "100%",
+          }}
+        />
       </Form.Item>
 
       <Form.Item {...tailLayout}>
         <Space>
-          <Button htmlType="button" onClick={saveInjury}>
+          <Button htmlType="button" onClick={addInjuryDetail}>
             Add Changes
-          </Button>
-          <Button type="primary" htmlType="submit" onClick={handleButtonClick}>
-            Save Injury
           </Button>
         </Space>
       </Form.Item>
     </Form>
   );
-});
+};
 
 export default InjuryForm;

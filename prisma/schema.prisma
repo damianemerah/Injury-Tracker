@@ -11,20 +11,31 @@ datasource db {
 }
 
 model Reporter {
-  id        String   @id @map("_id") @db.ObjectId
-  injuries  Injury[]
+  id        String       @id @map("_id") @db.ObjectId
+  injuryList  InjuryData[]
   name      String
-  email    String?   @unique
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  email     String?      @unique
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+}
+
+model InjuryData {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  injuryItem   Injury[]
+  reporter   Reporter @relation(fields: [reporterId], references: [id], onDelete: Cascade)
+  reporterId String   @db.ObjectId
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 }
 
 model Injury {
-  id        String   @id @map("_id") @default(auto()) @db.ObjectId
-  bodyMap   String
-  parts     String[]
-  reporter  Reporter @relation(fields: [reporterId], references: [id], onDelete: Cascade)
-  reporterId String @db.ObjectId
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id           String     @id @default(auto()) @map("_id") @db.ObjectId
+  bodyMap      String
+  bodyPart        String
+  description     String
+  injuryDate      DateTime
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  relatedInjuries   InjuryData @relation(fields: [relatedInjuriesId], references: [id], onDelete: Cascade)
+  relatedInjuriesId String     @db.ObjectId
 }

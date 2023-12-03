@@ -1,10 +1,10 @@
 import { Inter } from "next/font/google";
 import "./globals.css";
-import { Toaster } from "react-hot-toast";
 import { UserProvider } from "@auth0/nextjs-auth0/client";
-import Layout from "../components/Layout";
-import ApolloProviders from "@/components/ApolloProviders";
-import { InjuryProvider } from "@/context/BodyMapContext";
+import ApolloProviders from "@/components/context/ApolloProviders";
+import { InjuryProvider } from "@/components/context/BodyMapContext";
+import Layout from "@/components/Layout";
+import { Toaster } from "react-hot-toast";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -17,16 +17,14 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <UserProvider>
-        <body className={inter.className}>
-          <ApolloProviders>
+        <ApolloProviders>
+          <body className={inter.className}>
             <InjuryProvider>
-              <Layout>
-                <Toaster position="top-right" />
-                {children}
-              </Layout>
+              <Toaster position="top-right" />
+              <Layout>{children}</Layout>
             </InjuryProvider>
-          </ApolloProviders>
-        </body>
+          </body>
+        </ApolloProviders>
       </UserProvider>
     </html>
   );
