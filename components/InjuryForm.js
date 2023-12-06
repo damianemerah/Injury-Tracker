@@ -13,7 +13,7 @@ const InjuryForm = function InjuryForm() {
     useInjuryMap();
 
   function disabledDate(current) {
-    return current && current > dayjs().startOf("day");
+    return current && current > dayjs().endOf("day");
   }
 
   return (

@@ -1,13 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import {
-  DashboardOutlined,
-  FileOutlined,
-  UserOutlined,
-  BarChartOutlined,
-  UnorderedListOutlined,
-} from "@ant-design/icons";
+import { FileOutlined, BarChartOutlined } from "@ant-design/icons";
 import { Layout, Menu, theme, Space, Button, Image } from "antd";
 import Link from "next/link";
 import { useUser } from "@auth0/nextjs-auth0/client";
@@ -27,15 +21,13 @@ const items = [
   getItem(
     <Link href={"/dashboard"}>Dashboard</Link>,
     "/dashboard",
-    <DashboardOutlined />
+    <BarChartOutlined />
   ),
   getItem(
     <Link href={"/report"}>Report Injury</Link>,
     "/report",
     <FileOutlined />
   ),
-
-  getItem(<Link href={"/profile"}>Profile</Link>, "/profile", <UserOutlined />),
 ];
 
 const App = ({ children }) => {
@@ -67,8 +59,6 @@ const App = ({ children }) => {
     setSelectedMenu(e.key);
   };
 
-  if (isLoading) return <div>Loading...</div>;
-  if (error) return <div>{error.message}</div>;
   return (
     <Layout
       style={{

@@ -75,5 +75,5 @@ Welcome to PainPoint, an injury tracking system designed to help organizations, 
 
 1. **Clone the Repository:**
    ```bash
-   git clone [https://github.com/your-username/painpoint.git](https://github.com/dammy995/Injury-Tracker.git)https://github.com/dammy995/Injury-Tracker.git
+   git clone https://github.com/dammy995/Injury-Tracker.git
    ```

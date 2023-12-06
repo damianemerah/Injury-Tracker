@@ -1,4 +1,3 @@
-import React, { use, useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { Table, DatePicker, Space, Button, Input } from "antd";
 import { useInjury } from "./context/InjuryContext";
@@ -212,7 +211,7 @@ const ReporterTable = () => {
         injury: injury.bodyPart,
         injuryDate: injury.injuryDate,
         createdAt: injury.createdAt,
-        description: injury.description,
+        description: injury.description.slice(0, 40) + "...",
         parentId: injury.parentId,
       };
     });

@@ -8,7 +8,6 @@ export const typeDefs = gql`
     injuryList: [InjuryData]!
     createdAt: DateTime!
     updatedAt: DateTime!
-    image: String
   }
 
   type InjuryData {
@@ -49,14 +48,12 @@ export const typeDefs = gql`
   input ReporterInput {
     name: String!
     email: String
-    image: String
     injuryList: [CreateInjuryDataInput]!
   }
 
   input UpdateReporterInput {
     name: String
     email: String
-    image: String
   }
 
   input InjuryInput {
