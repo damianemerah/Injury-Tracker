@@ -32,7 +32,7 @@ const items = [
 
 const App = ({ children }) => {
   const pathname = usePathname();
-  const { user: auth0User, error, isLoading } = useUser();
+  const { user: auth0User } = useUser();
   const { user } = useUserContext();
   const [selectedMenu, setSelectedMenu] = useState(pathname);
 
