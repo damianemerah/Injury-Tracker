@@ -8,7 +8,7 @@ import {
   Legend,
 } from "chart.js";
 import { Bar } from "react-chartjs-2";
-import { useInjury } from "./context/BodyMapContext";
+import { useInjury } from "./context/InjuryContext";
 import dayjs from "dayjs";
 import { DatePicker } from "antd";
 import { useState, useEffect } from "react";
@@ -65,55 +65,54 @@ export function InjuryChart() {
   const [selectedYear, setSelectedYear] = useState(dayjs().year());
   const [injuryChart, setInjuryChart] = useState({});
 
-  const { injuries, injuryLoading } = useInjury();
+  const { injuries } = useInjury();
 
   useEffect(() => {
-    const injuryData = injuries
-      .map((injury) => {
-        return injury.injuryItem;
-      })
-      .flat()
-      .filter((injury) => {
-        const dateToCheck = dayjs(injury.injuryDate);
+    if (injuries) {
+      const injuryData = injuries
+        .map((injury) => {
+          return injury.injuryItem;
+        })
+        .flat()
+        .filter((injury) => {
+          const dateToCheck = dayjs(injury.injuryDate);
 
-        return dateToCheck.isSame(`${selectedYear}`, "year");
-      })
-      .map((injury) => {
-        console.log(injury, "injury");
-        return {
-          injuryMonth: dayjs(injury.injuryDate).format("MMMM"),
-          bodyPart: injury.bodyPart,
-        };
-      });
-    console.log(injuryData, "injuryData");
+          return dateToCheck.isSame(`${selectedYear}`, "year");
+        })
+        .map((injury) => {
+          return {
+            injuryMonth: dayjs(injury.injuryDate).format("MMMM"),
+            bodyPart: injury.bodyPart,
+          };
+        });
 
-    const dataCounts = injuryData.reduce((acc, entry) => {
-      const key = `${entry.injuryMonth}-${entry.bodyPart}`;
-      acc[key] = (acc[key] || 0) + 1;
-      return acc;
-    }, {});
+      const dataCounts = injuryData.reduce((acc, entry) => {
+        const key = `${entry.injuryMonth}-${entry.bodyPart}`;
+        acc[key] = (acc[key] || 0) + 1;
+        return acc;
+      }, {});
 
-    const datasets = injuryArea.map((area) => ({
-      label: area,
-      data: labels.map((month) => dataCounts[`${month}-${area}`] || 0),
-      backgroundColor: getRandomColor(),
-    }));
+      const datasets = injuryArea.map((area) => ({
+        label: area,
+        data: labels.map((month) => dataCounts[`${month}-${area}`] || 0),
+        backgroundColor: getRandomColor(),
+      }));
 
-    console.log(datasets, "datasets");
+      const data = {
+        labels,
+        datasets,
+      };
 
-    const data = {
-      labels,
-      datasets,
-    };
-
-    setInjuryChart(data);
+      setInjuryChart(data);
+    }
   }, [selectedYear, injuries]);
 
   const handleYearChange = (date, dateString) => {
     setSelectedYear(dayjs(date).year());
   };
 
-  if (injuryLoading) return <p>Loading...</p>;
+  if (Object.keys(injuryChart).length === 0) return <p>No injuries found</p>;
+
   return (
     <>
       <DatePicker

@@ -1,15 +1,47 @@
 "use client";
 
-import Image from "next/image";
-import Head from "next/head";
+import { useState, useEffect } from "react";
 import { Space, Typography, Card, Statistic, Layout, theme } from "antd";
 import { FieldTimeOutlined } from "@ant-design/icons";
 import InjuryTable from "@/components/Table";
 import { InjuryChart } from "@/components/InjuryChart";
+import { useInjury } from "@/components/context/InjuryContext";
+import dayjs from "dayjs";
 
 const { Content } = Layout;
 
 export default function ProfileClient() {
+  const { injuries } = useInjury();
+  const [injuryByWeek, setInjuryByWeek] = useState([]);
+  const [injuryByMonth, setInjuryByMonth] = useState([]);
+
+  useEffect(() => {
+    if (!injuries) {
+      return;
+    }
+    const today = dayjs();
+    const startOfWeek = today.startOf("week");
+    const endOfWeek = today.endOf("week");
+
+    const startOfMonth = today.startOf("month");
+    const endOfMonth = today.endOf("month");
+
+    const injuryList = injuries.map((injury) => injury.injuryItem).flat();
+
+    const thisWeek = injuryList.filter((injury) => {
+      const dateToCheck = dayjs(injury.injuryDate);
+      return dateToCheck.isBetween(startOfWeek, endOfWeek, null, "[]");
+    });
+    setInjuryByWeek(thisWeek.length);
+
+    const thisMonth = injuryList.filter((injury) => {
+      const dateToCheck = dayjs(injury.injuryDate);
+      return dateToCheck.isBetween(startOfMonth, endOfMonth, null, "[]");
+    });
+
+    setInjuryByMonth(thisMonth.length);
+  }, [injuries]);
+
   const {
     token: { colorBgContainer },
   } = theme.useToken();
@@ -44,7 +76,7 @@ export default function ProfileClient() {
               />
             }
             title={"This Week"}
-            value={1234}
+            value={injuryByWeek}
           />
           <DashboardCard
             icon={
@@ -58,7 +90,7 @@ export default function ProfileClient() {
               />
             }
             title={"Last Month"}
-            value={1234}
+            value={injuryByMonth}
           />
         </Space>
         <Typography.Title level={4}>Last Reported Injury:</Typography.Title>

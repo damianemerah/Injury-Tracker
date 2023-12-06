@@ -7,7 +7,8 @@ import { fabric } from "fabric";
 import InjuryForm from "@/components/InjuryForm";
 import BodyMap from "@/components/BodyMap";
 import InjuryTable from "@/components/Table";
-import { useInjury } from "@/components/context/BodyMapContext";
+import { useInjury } from "@/components/context/InjuryContext";
+import { useInjuryMap } from "@/components/context/InjuryMapContext";
 import dayjs from "dayjs";
 
 const { Content } = Layout;
@@ -27,12 +28,11 @@ export default function ReportInjury() {
     setShowDescription,
     form,
     setInjuryDetails,
-    setInjuryCount,
-    saveInjury,
     injurySaveType,
-    deleteInjuryDB,
     resetMap,
-  } = useInjury();
+  } = useInjuryMap();
+
+  const { saveInjury, deleteInjuryDB } = useInjury();
 
   useEffect(() => {
     //   // Initialize Fabric.js canvas
@@ -43,7 +43,6 @@ export default function ReportInjury() {
       selection: false,
       backgroundColor: "transparent",
     });
-    // console.log(data);
     setCanvas(newCanvas);
 
     // const updateCanvasSize = () => {
@@ -139,6 +138,7 @@ export default function ReportInjury() {
               alignItems: "center",
               marginBottom: 30,
             }}
+            className="body-map-container"
           >
             <div>
               <BodyMap ref={bodyMapRef} />
@@ -146,6 +146,7 @@ export default function ReportInjury() {
                 style={{
                   textAlign: "center",
                   marginTop: 15,
+                  marginBottom: 15,
                 }}
               >
                 <Space>

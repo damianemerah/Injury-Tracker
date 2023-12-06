@@ -1,6 +1,5 @@
 import { Form, Input, Select, Button, Space, DatePicker } from "antd";
-import { useInjury } from "@/components/context/BodyMapContext";
-import { useEffect } from "react";
+import { useInjuryMap } from "@/components/context/InjuryMapContext";
 import dayjs from "dayjs";
 
 const { Option } = Select;
@@ -9,9 +8,13 @@ const tailLayout = {
   wrapperCol: { offset: 8, span: 16 },
 };
 
-const InjuryForm = function InjuryForm({ addInjuryDetail }) {
-  const { circleId, isEditing, saveInjury, form, onChange, canvas } =
-    useInjury();
+const InjuryForm = function InjuryForm() {
+  const { circleId, isEditing, form, onChange, addInjuryDetail } =
+    useInjuryMap();
+
+  function disabledDate(current) {
+    return current && current > dayjs().startOf("day");
+  }
 
   return (
     <Form form={form} name="myForm" layout="vertical">
@@ -59,6 +62,7 @@ const InjuryForm = function InjuryForm({ addInjuryDetail }) {
       >
         <DatePicker
           onChange={onChange}
+          disabledDate={disabledDate}
           format="YYYY/MM/DD HH:mm"
           showTime={{ format: "HH:mm" }}
           style={{

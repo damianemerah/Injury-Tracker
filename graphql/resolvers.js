@@ -1,5 +1,4 @@
-import { WithApiAuthRequired, getSession } from "@auth0/nextjs-auth0";
-import { ObjectId } from "bson";
+import { getSession } from "@auth0/nextjs-auth0";
 
 const getUser = async (req) => {
   const session = await getSession(req);
@@ -72,7 +71,6 @@ export const resolvers = {
 
     reporter: async (_, { id }, context) => {
       try {
-        console.log("Searching for reporter with id:🤒🤒🚀🚀🚀🔥", id);
         const reporter = await context.prisma.reporter.findUnique({
           where: {
             id,
@@ -102,7 +100,6 @@ export const resolvers = {
         const { name, email, injuryList = [] } = input;
         const session = await getUser(context.req);
         const userID = session?.user?.sub.split("|")[1];
-        console.log("session🔥🔥", userID);
 
         if (!id || id !== userID) {
           throw new Error("Reporter ID is required");
@@ -156,7 +153,6 @@ export const resolvers = {
 
         return reporter;
       } catch (error) {
-        console.error("Error creating reporter:", error.message);
         throw error;
       }
     },
@@ -204,7 +200,6 @@ export const resolvers = {
 
         return updatedReporter;
       } catch (error) {
-        console.error("Error updating reporter:", error);
         throw error;
       }
     },
@@ -227,12 +222,15 @@ export const resolvers = {
         }
         return deletedReporter;
       } catch (error) {
-        console.log("Error deleting reporter:", error);
         throw error;
       }
     },
     createInjury: async (_, { reporterId, input }, context) => {
       try {
+        if (!reporterId || typeof reporterId !== "string") {
+          throw new Error("You must be logged in to submit a report");
+        }
+
         const { injuryItem } = input;
         // Check if the reporter exists
         const existingReporter = await context.prisma.reporter.findUnique({
@@ -276,7 +274,6 @@ export const resolvers = {
 
         return injuryData;
       } catch (error) {
-        console.log("Error creating injury:", error);
         throw error;
       }
     },
@@ -298,12 +295,6 @@ export const resolvers = {
         const userID = session?.user?.sub.split("|")[1];
 
         if (existingInjury.reporterId !== userID) {
-          console.log(
-            "existingInjury.reporterId",
-            existingInjury.reporterId,
-            "userID",
-            userID
-          );
           throw new Error("Cannot update injury for another reporter");
         }
 
@@ -331,7 +322,6 @@ export const resolvers = {
         });
         return updatedInjuryData;
       } catch (error) {
-        console.log("Error updating injury:", error);
         throw error;
       }
     },
@@ -363,7 +353,6 @@ export const resolvers = {
 
         return deletedInjury;
       } catch (error) {
-        console.log("Error deleting injury:", error);
         throw error;
       }
     },

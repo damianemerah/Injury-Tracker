@@ -1,22 +1,22 @@
 import React, { use, useEffect, useState } from "react";
-import { Table, DatePicker, Space, Button, Input } from "antd";
-import { useInjury } from "./context/BodyMapContext";
 import { usePathname } from "next/navigation";
-import dayjs from "dayjs";
+import { Table, DatePicker, Space, Button, Input } from "antd";
+import { useInjury } from "./context/InjuryContext";
+import { useInjuryMap } from "./context/InjuryMapContext";
+import { useUserContext } from "./context/UserContext";
 import { SearchOutlined } from "@ant-design/icons";
+import dayjs from "dayjs";
+
 const isBetween = require("dayjs/plugin/isBetween");
 
 const { RangePicker } = DatePicker;
 
 const ReporterTable = () => {
-  const {
-    injuries,
-    userId,
-    canvas,
-    setInjurySaveType,
-    setCircleId,
-    setInjuryCount,
-  } = useInjury();
+  const { injuries } = useInjury();
+  const { canvas, setInjurySaveType, setCircleId, setInjuryCount } =
+    useInjuryMap();
+
+  const { user } = useUserContext();
   const router = usePathname();
 
   let data;
@@ -163,7 +163,7 @@ const ReporterTable = () => {
             onClick={() => {
               canvas.clear();
               const injury = injuryItem.find((data) => data.id === record.key);
-              const canvasData = JSON.parse(injury.bodyMap);
+              const canvasData = JSON.parse(injury?.bodyMap);
               canvas.loadFromJSON(canvasData);
               canvas.renderAll();
               canvas.getObjects().forEach((obj) => {
@@ -190,7 +190,7 @@ const ReporterTable = () => {
 
   if (router == "/report") {
     injuryList = injuries.filter((injury) => {
-      return injury.reporter.id === userId;
+      return injury.reporter.id === user?.id;
     });
   } else {
     injuryList = [...injuries];
@@ -222,7 +222,14 @@ const ReporterTable = () => {
     console.log("params", pagination, filters, sorter, extra);
   };
 
-  return <Table columns={columns} dataSource={data} onChange={onChange} />;
+  return (
+    <Table
+      columns={columns}
+      dataSource={data}
+      onChange={onChange}
+      scroll={{ x: "100%" }}
+    />
+  );
 };
 
 export default ReporterTable;

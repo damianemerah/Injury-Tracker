@@ -1,4 +1,4 @@
-import { useInjury } from "@/components/context/BodyMapContext";
+import { useInjuryMap } from "@/components/context/InjuryMapContext";
 import { Card, Tooltip } from "antd";
 import { useRef, forwardRef, useImperativeHandle } from "react";
 
@@ -9,7 +9,7 @@ const BodyMap = forwardRef(function BodyMap(props, ref) {
     canvasRef,
   }));
 
-  const { showDescription, injuryDetails } = useInjury();
+  const { showDescription, injuryDetails } = useInjuryMap();
 
   return (
     <Card style={{ display: "inline-block", flex: 1, position: "relative" }}>

@@ -17,6 +17,7 @@ model Reporter {
   email     String?      @unique
   createdAt DateTime     @default(now())
   updatedAt DateTime     @updatedAt
+  image     String?
 }
 
 model InjuryData {

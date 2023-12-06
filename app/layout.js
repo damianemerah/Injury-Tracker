@@ -1,8 +1,10 @@
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { UserProvider } from "@auth0/nextjs-auth0/client";
+import { UserProvider as DBUserProvider } from "@/components/context/UserContext";
 import ApolloProviders from "@/components/context/ApolloProviders";
-import { InjuryProvider } from "@/components/context/BodyMapContext";
+import { InjuryProvider } from "@/components/context/InjuryContext";
+import { InjuryMapProvider } from "@/components/context/InjuryMapContext";
 import Layout from "@/components/Layout";
 import { Toaster } from "react-hot-toast";
 
@@ -16,16 +18,20 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <UserProvider>
-        <ApolloProviders>
-          <body className={inter.className}>
-            <InjuryProvider>
-              <Toaster position="top-right" />
-              <Layout>{children}</Layout>
-            </InjuryProvider>
-          </body>
-        </ApolloProviders>
-      </UserProvider>
+      <ApolloProviders>
+        <body className={inter.className}>
+          <UserProvider>
+            <DBUserProvider>
+              <InjuryMapProvider>
+                <InjuryProvider>
+                  <Toaster position="top-right" />
+                  <Layout>{children}</Layout>
+                </InjuryProvider>
+              </InjuryMapProvider>
+            </DBUserProvider>
+          </UserProvider>
+        </body>
+      </ApolloProviders>
     </html>
   );
 }
