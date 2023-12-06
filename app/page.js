@@ -11,7 +11,7 @@ const Home = () => {
     router.push("/dashboard");
   }, [router]);
 
-  return null;
+  return <h1>Home</h1>;
 };
 
 export default Home;
