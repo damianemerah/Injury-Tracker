@@ -143,7 +143,6 @@ const InjuryProvider = ({ children }) => {
         }}
       >
         <Spin size="large" />
-        <p>Loading...</p>
       </div>
     );
   if (!injuries) return <p>No injuries found</p>;
